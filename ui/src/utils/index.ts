@@ -58,17 +58,34 @@ export const datetimeFormat = (str: string, withTZ = true): string => {
 };
 
 // 时间转换 time格式YYYY-MM-DD HH:mm:ss
-export const convertTime = (time: string, type?: 'local' | 'utc') => {
+export const convertTime = (time: string, type?: 'local' | 'utc', withTZ = true) => {
+  const { userInfo } = storeToRefs(useUserStore());
+  const userTZ = userInfo.value.time_zone;
+
   if (type === 'local') {
     // 把传入的UTC时间，转换成本地时间
-    return dayjs.utc(time, 'YYYY-MM-DD HH:mm:ss').local().format('YYYY-MM-DD HH:mm:ss');
+    const date = dayjs.utc(time, 'YYYY-MM-DD HH:mm:ss').tz(userTZ);
+    if (!withTZ) {
+      return date.format('YYYY-MM-DD HH:mm:ss');
+    }
+    return `${date.format('YYYY-MM-DD HH:mm:ss')} ${date.format('ZZ')}`;
   }
+
   if (type === 'utc') {
     // 把传入的本地时间，转换成UTC时间
-    return dayjs(time, 'YYYY-MM-DD HH:mm:ss').utc().format('YYYY-MM-DD HH:mm:ss');
+    const date = dayjs(time, 'YYYY-MM-DD HH:mm:ss').tz(userTZ).utc();
+    if (!withTZ) {
+      return date.format('YYYY-MM-DD HH:mm:ss');
+    }
+    return `${date.format('YYYY-MM-DD HH:mm:ss')} +0000`;
   }
+
   // 默认返回本地当前时间转换的UTC时间
-  return dayjs().utc().format('YYYY-MM-DD HH:mm:ss');
+  const now = dayjs().utc();
+  if (!withTZ) {
+    return now.format('YYYY-MM-DD HH:mm:ss');
+  }
+  return `${now.format('YYYY-MM-DD HH:mm:ss')} +0000`;
 };
 
 // 获取diff类型
