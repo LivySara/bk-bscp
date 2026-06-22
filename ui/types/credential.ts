@@ -53,6 +53,7 @@ export interface IRuleEditing {
   isRight: boolean;
   isSelectService: boolean;
   needPreview: boolean;
+  envId?: string; // 选中的环境ID
 }
 
 // 调用关联规则更新接口参数

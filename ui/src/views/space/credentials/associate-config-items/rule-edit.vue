@@ -6,6 +6,12 @@
     <div class="rules-edit-area">
       <div v-for="(rule, index) in localRules" class="rule-list" :key="index">
         <div :class="['rule-item', { 'rule-error': !rule.isRight }, { 'service-error': !rule.isSelectService }]">
+          <env-selector
+            v-model="rule.envId"
+            :placeholder="t('请选择环境')"
+            :use-default-trigger="true"
+            class="env-select"
+            @change="() => handleEnvChange()" />
           <bk-select
             v-model="rule.app"
             class="service-select"
@@ -72,6 +78,7 @@
   import { ICredentialRule, IRuleEditing, IRuleUpdateParams, IPreviewRule } from '../../../../../types/credential';
   import { IAppItem } from '../../../../../types/app';
   import { ArrowsRight } from 'bkui-vue/lib/icon';
+  import EnvSelector from '../../../../components/env-selector.vue';
 
   const { t } = useI18n();
 
@@ -242,6 +249,10 @@
     updateRuleParams();
     emits('formChange');
   };
+  // 环境选择变更（带环境信息）
+  const handleEnvChange = () => {
+    updateRuleParams();
+  };
 
   const updateRuleParams = () => {
     const params: IRuleUpdateParams = {
@@ -327,6 +338,11 @@
   .rule-item {
     display: flex;
     align-items: center;
+    .env-select {
+      width: 120px;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
     .service-select {
       width: 180px;
       margin-right: 8px;
@@ -381,6 +397,7 @@
       color: #979ba5;
       font-size: 12px;
       cursor: pointer;
+      white-space: nowrap;
       .arrow-icon {
         font-size: 16px;
       }

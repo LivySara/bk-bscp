@@ -1,6 +1,26 @@
 <template>
   <section class="configuration-example-page">
     <div class="example-aside">
+      <!-- 选择环境 -->
+      <EnvSelector v-model="localEnvId" class="sel-env" @change="handleEnvChange">
+        <template #trigger="{ selectInfo, isOpen }">
+          <div
+            v-if="selectInfo"
+            class="env-selector-trigger"
+            :style="{
+              backgroundColor: ENV_TYPE_CONFIG[selectInfo.group.type]?.bgColor || '#F0F1F5',
+              color: ENV_TYPE_CONFIG[selectInfo.group.type]?.textColor || '#63656E' }">
+            <div class="env-val-cls">
+              <i
+                :class="`bk-bscp-icon ${ENV_TYPE_CONFIG[selectInfo.group.type]?.iconClass || ''} env-icon`"
+                :style="{ color: ENV_TYPE_CONFIG[selectInfo.group.type]?.iconColor || '#979BA5' }">
+              </i>
+              <span class="env-name">{{ selectInfo.env?.name }}</span>
+            </div>
+            <AngleUpFill :class="['env-arrow', { 'icon-rotate': isOpen }]"/>
+          </div>
+        </template>
+      </EnvSelector>
       <!-- 选择服务 -->
       <ServiceSelector class="sel-service" @change="selectService">
         <template #trigger>
@@ -47,6 +67,7 @@
 <script lang="ts" setup>
   import { computed, ref, nextTick, provide } from 'vue';
   import ServiceSelector from '../../../../components/service-selector.vue';
+  import EnvSelector from '../../../../components/env-selector.vue';
   import { useI18n } from 'vue-i18n';
   import useGlobalStore from '../../../../store/global';
   import { storeToRefs } from 'pinia';
@@ -56,8 +77,10 @@
   import DefaultExample from './components/content/default-example.vue';
   import Exception from '../components/exception.vue';
   import { IAppItem } from '../../../../../types/app';
+  import { IEnvItem, IEnvGroupItem } from '../../../../../types/env';
   import { useRoute, useRouter } from 'vue-router';
   import { AngleUpFill } from 'bkui-vue/lib/icon';
+  import { ENV_TYPE_CONFIG } from '../../../../constants/env';
 
   const { t } = useI18n();
   const route = useRoute();
@@ -95,6 +118,7 @@
   const renderComponent = ref(''); // 渲染的示例组件
   const serviceName = ref('');
   const serviceType = ref('');
+  const localEnvId = ref('Default');
   const topTip = ref('');
   const loading = ref(true);
   provide('basicInfo', { serviceName, serviceType });
@@ -150,6 +174,12 @@
     }
     changeTypeItem(navList.value[0].val);
   };
+
+  // 环境切换
+  const handleEnvChange = (env: IEnvItem, group: IEnvGroupItem) => {
+    // TODO: 处理环境变更逻辑
+    console.log('环境变更:', env, group);
+  };
   // 服务的子类型切换
   const changeTypeItem = (data: string) => {
     renderComponent.value = data;
@@ -200,9 +230,51 @@
       line-height: 20px;
     }
   }
+  .sel-env {
+    flex-shrink: 0;
+    padding: 10px 8px 0;
+    width: 239px;
+    :deep(.env-selector-trigger) {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 32px;
+      cursor: pointer;
+      padding: 0 8px;
+      border-radius: 4px;
+      transition: all 0.3s;
+      .env-val-cls {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .env-icon {
+        font-size: 16px;
+        flex-shrink: 0;
+      }
+      .env-name {
+        flex: 1;
+        font-size: 16px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .env-arrow {
+        margin-left: 8px;
+        font-size: 16px;
+        color: #F8B4B4;
+        transition: transform 0.2s;
+        flex-shrink: 0;
+        &.icon-rotate {
+          transform: rotate(-180deg);
+        }
+      }
+    }
+  }
   .sel-service {
     flex-shrink: 0;
-    padding: 10px 8px;
+    padding: 4px 8px 10px;
     width: 239px;
     border-bottom: 1px solid #f0f1f5;
   }

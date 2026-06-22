@@ -9,10 +9,17 @@
       <div
         v-for="(rule, index) in rules"
         :key="rule.id"
-        :class="['rule-item', { 'current-rule-item': previewRule?.id === rule.id }]"
-        @click="handlePreviewRule(rule, index)">
-        {{ rule.spec.app + rule.spec.scope }}
-        <div v-if="previewRule?.id === rule.id" class="arrow-icon"></div>
+        class="rule-item-wrapper">
+        <div class="rule-item-env">
+          <i class="bk-bscp-icon icon-shengchanhuanjing env-icon"></i>
+          <span class="env-text">Default</span>
+        </div>
+        <div
+          :class="['rule-item', { 'current-rule-item': previewRule?.id === rule.id }]"
+          @click="handlePreviewRule(rule, index)">
+          {{ rule.spec.app + rule.spec.scope }}
+          <div v-if="previewRule?.id === rule.id" class="arrow-icon"></div>
+        </div>
       </div>
     </div>
     <bk-exception v-else scene="part" type="empty">
@@ -33,6 +40,7 @@
 <script setup lang="ts">
   import { ICredentialRule, IPreviewRule } from '../../../../../types/credential';
   import { useI18n } from 'vue-i18n';
+  // import { ENV_TYPE_CONFIG } from '../../../../constants/env';
 
   const { t } = useI18n();
   const props = defineProps<{
@@ -68,16 +76,41 @@
     }
   }
   .rule-list {
+    .rule-item-wrapper{
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      &:not(:last-child) {
+        margin-bottom: 8px;
+      }
+    }
+    .rule-item-env {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 10px 6px;
+      border-radius: 4px;
+      background-color: #FFF0F0;
+      color: #E71818;
+      flex-shrink: 0;
+      .env-icon {
+        font-size: 16px;
+        color: #EA3636;
+      }
+      .env-text {
+        font-size: 12px;
+        white-space: nowrap;
+        line-height: 20px;
+      }
+    }
     .rule-item {
+      flex: 1;
       padding: 10px 16px;
       line-height: 20px;
       font-size: 12px;
       background: #f5f7fa;
       color: #63656e;
       border-radius: 2px;
-      &:not(:last-child) {
-        margin-bottom: 8px;
-      }
     }
     .current-rule-item {
       position: relative;

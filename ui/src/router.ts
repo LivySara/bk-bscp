@@ -256,6 +256,22 @@ const routes = [
           },
         ],
       },
+      {
+        path: 'project-manage',
+        name: 'project-manage',
+        meta: {
+          navModule: 'project-manage',
+        },
+        component: () => import('./views/space/project-manage/index.vue'),
+      },
+      {
+        path: 'env-manage',
+        name: 'env-manage',
+        meta: {
+          navModule: 'env-manage',
+        },
+        component: () => import('./views/space/env-manage/index.vue'),
+      },
     ],
   },
   {

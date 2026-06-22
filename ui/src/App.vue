@@ -2,6 +2,7 @@
   <div class="page-content-container">
     <notice-component v-if="enableNotice" :api-url="noticeApiURL" @show-alert-change="showNotice = $event" />
     <Header></Header>
+    <!-- <env-alert-bar :model-value="envVal" :env-type="envType" @change="handleChange" /> -->
     <div :class="['content', { 'show-notice': showNotice }]">
       <router-view></router-view>
       <permission-dialog :show="showApplyPermDialog"></permission-dialog>
@@ -17,6 +18,7 @@
   import '@blueking/notice-component/dist/style.css';
   import Header from './components/head.vue';
   import PermissionDialog from './components/permission/apply-dialog.vue';
+  // import EnvAlertBar from './components/env-alert-bar.vue';
 
   const globalStore = useGlobalStore();
   const { showApplyPermDialog, showNotice } = storeToRefs(globalStore);
@@ -29,6 +31,13 @@
   onMounted(() => {
     globalStore.getAppGlobalConfig();
   });
+
+  // const envVal = ref('Default');
+  // const envType = ref('prod');
+  // const handleChange = (env: any, group: any) => {
+  //   envVal.value = env.id;
+  //   envType.value = group.type;
+  // };
 </script>
 
 <style scoped lang="scss">

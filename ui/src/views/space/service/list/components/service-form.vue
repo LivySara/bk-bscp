@@ -1,5 +1,49 @@
 <template>
   <bk-form form-type="vertical" ref="formRef" :model="localData" :rules="rules">
+    <!-- 项目和环境选择 -->
+    <div :class="`${cloneMode ? 'project-env-clone' : 'project-env-section'}`">
+      <div v-if="!cloneMode" class="section-hint">{{ t('服务将创建到以下项目和环境下') }}</div>
+      <div v-else>
+        <div class="clone-title">{{ t('选择克隆目标环境') }}</div>
+        <div class="clone-tip-top">{{ t('将源服务的配置克隆到以下环境中，创建为一个新的服务') }}</div>
+      </div>
+      <div class="project-env-row">
+        <!-- 项目选择器 -->
+        <bk-form-item
+          :label="t(`${cloneMode ? '目标' : '所属'}项目`)"
+          :required="!cloneMode"
+          property="projectEnv.projectId"
+          class="project-selector">
+          <bk-select
+            v-model="localData.projectEnv.projectId"
+            :clearable="false"
+            :filterable="true"
+            :disabled="cloneMode"
+            :placeholder="t('请选择项目')"
+            search-placeholder="搜索项目名称"
+            @change="handleProjectChange">
+            <bk-option
+              v-for="proj in projectList"
+              :key="proj.id"
+              :value="proj.id"
+              :label="proj.name" />
+          </bk-select>
+        </bk-form-item>
+        <!-- 环境选择器 -->
+        <bk-form-item
+          :label="t(`${cloneMode ? '目标' : '所属'}环境`)"
+          required
+          property="projectEnv.envId"
+          class="env-selector">
+          <env-selector
+            v-model="localData.projectEnv.envId"
+            :placeholder="t('请选择环境')"
+            :use-default-trigger="true"
+            @change="handleEnvChange" />
+        </bk-form-item>
+      </div>
+      <div v-if="cloneMode" class="clone-tip-bottom">{{ t('当前版本仅支持克隆到当前项目') }}</div>
+    </div>
     <bk-form-item :label="t('form_服务名称')" property="name" required>
       <bk-input
         v-model="localData.name"
@@ -143,6 +187,8 @@
   import { CONFIG_KV_TYPE } from '../../../../../constants/config';
   import { Help, ExclamationCircleShape } from 'bkui-vue/lib/icon';
   import BkUserSelector from '../../../../../components/user-selector/index.vue';
+  import EnvSelector from '../../../../../components/env-selector.vue';
+  import type { IProjectItem } from '../../../../../../types/project';
 
   const { t, locale } = useI18n();
 
@@ -193,11 +239,20 @@
     ],
   };
 
-  const localData = ref({ ...props.formData });
+  const localData: any = ref({
+    ...props.formData,
+    projectEnv: {
+      projectId: '',
+      envId: '',
+    },
+  });
   const formRef = ref();
   const approvalDialogShow = ref(false);
   const selectionsApprover = ref<string[]>([]);
   const selValidationError = ref(false);
+
+  // 项目数据
+  const projectList = ref<IProjectItem[]>([]);
 
   watch(
     () => props.formData,
@@ -260,6 +315,17 @@
     emits('change', localData.value);
   };
 
+  // 项目选择变化
+  const handleProjectChange = (projectId: string) => {
+    localData.value.projectEnv.projectId = projectId;
+    handleChange();
+  };
+
+  // 环境选择变化
+  const handleEnvChange = () => {
+    handleChange();
+  };
+
   const validate = () => formRef.value.validate();
 
   defineExpose({
@@ -269,6 +335,49 @@
 </script>
 
 <style lang="scss" scoped>
+  .project-env-section {
+    position: relative;
+    left: -24px;
+    min-width: 640px;
+    padding: 24px;
+    margin-bottom: 24px;
+    background-color: #F5F7FA;
+    .section-hint {
+      margin-bottom: 12px;
+      color: #979BA5;
+      line-height: 20px;
+    }
+  }
+  .project-env-clone {
+    padding: 16px;
+    border-radius: 2px;
+    margin-bottom: 24px;
+    background-color: #F5F7FA;
+    .clone-title {
+      color: #4d4f56;
+      font-weight: 700;
+      line-height: 22px;
+      margin-bottom: 2px;
+    }
+    .clone-tip-top {
+      font-size: 12px;
+      color: #979BA5;
+      margin-bottom: 16px;
+    }
+    .clone-tip-bottom {
+      font-size: 12px;
+      color: #979BA5;
+      margin-top: 4px;
+    }
+  }
+  .project-env-row {
+    display: flex;
+    gap: 24px;
+    .project-selector, .env-selector {
+      flex: 1;
+      margin-bottom: 0;
+    }
+  }
   .type-select {
     width: 240px;
   }

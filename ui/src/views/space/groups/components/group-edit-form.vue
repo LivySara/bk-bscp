@@ -8,21 +8,30 @@
         <bk-radio :label="true">{{ t('公开') }}</bk-radio>
         <bk-radio :label="false">{{ t('指定服务') }}</bk-radio>
       </bk-radio-group>
-      <bk-select
-        v-if="!formData.public"
-        v-model="formData.bind_apps"
-        class="service-selector"
-        multiple
-        filterable
-        :placeholder="t('请选择服务')"
-        :input-search="false"
-        @change="change">
-        <bk-option
-          v-for="service in serviceList"
-          :key="service.id"
-          :label="service.spec.name"
-          :value="service.id"></bk-option>
-      </bk-select>
+      <div v-if="!formData.public" class="env-service-row">
+        <bk-form-item :label="t('环境')" required property="env_id" class="env-selector">
+          <env-selector
+            v-model="formData.env_id"
+            :placeholder="t('请选择环境')"
+            :use-default-trigger="true"
+            @change="handleEnvInfoChange" />
+        </bk-form-item>
+        <bk-form-item :label="t('绑定服务')" required property="bind_apps" class="service-selector">
+          <bk-select
+            v-model="formData.bind_apps"
+            multiple
+            filterable
+            :placeholder="t('请选择服务')"
+            :input-search="false"
+            @change="change">
+            <bk-option
+              v-for="service in serviceList"
+              :key="service.id"
+              :label="service.spec.name"
+              :value="service.id"></bk-option>
+          </bk-select>
+        </bk-form-item>
+      </div>
     </bk-form-item>
     <bk-form-item class="radio-group-form" :label="t('标签选择器')" required property="rules">
       <template #label>
@@ -61,6 +70,8 @@
   import { IAppItem } from '../../../../../types/app';
   import { Info } from 'bkui-vue/lib/icon';
   import TagSelector from './tag-selector.vue';
+  import EnvSelector from '../../../../components/env-selector.vue';
+  import { IEnvItem, IEnvGroupItem } from '../../../../../types/env';
 
   const getDefaultRuleConfig = (): IGroupRuleItem => ({ key: '', op: 'eq', value: '' });
 
@@ -106,6 +117,18 @@
         message: t('指定服务不能为空'),
       },
     ],
+    bind_apps: [
+      {
+        validator: (val: number[]) => {
+          if (!formData.value.public && val.length === 0) {
+            return false;
+          }
+          return true;
+        },
+        message: t('绑定服务不能为空'),
+        trigger: 'blur',
+      },
+    ],
   };
 
   onMounted(() => {
@@ -126,6 +149,12 @@
     } finally {
       serviceLoading.value = false;
     }
+  };
+
+  // 环境选择变化（带环境信息）
+  const handleEnvInfoChange = (env: IEnvItem, group: IEnvGroupItem) => {
+    // 可以在这里做环境变化后的额外处理
+    console.log('env changed', env, group);
   };
 
   // 增加规则
@@ -170,9 +199,25 @@
       line-height: 1;
     }
   }
-  .service-selector {
-    margin-top: 10px;
+  .env-service-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+    padding: 16px 16px 24px;
+    border-radius: 2px;
+    background-color: #F5F7FA;
+    :deep(.bk-form-item) {
+      margin-bottom: 0;
+    }
+    .env-selector {
+      flex: 1;
+    }
+    .service-selector {
+      width: 392px;
+    }
   }
+
   .published-version {
     line-height: 16px;
     font-size: 12px;
