@@ -49,6 +49,7 @@
     name: '',
     public: true,
     bind_apps: [],
+    env_id: '',
     rule_logic: 'AND',
     rules: [{ key: '', op: '', value: '' }],
   });
@@ -65,6 +66,7 @@
           name,
           bind_apps: bind_apps.map((item) => item.id),
           public: isPublic,
+          env_id: (props.group as any).env_id || '',
           rule_logic: selector.labels_and ? 'AND' : 'OR',
           rules: (selector.labels_and || selector.labels_or) as IGroupRuleItem[],
         };
@@ -85,11 +87,12 @@
     }
     pending.value = true;
     try {
-      const { id, name, public: isPublic, bind_apps, rule_logic, rules } = groupData.value;
+      const { id, name, public: isPublic, bind_apps, env_id, rule_logic, rules } = groupData.value;
       const params = {
         name,
         public: isPublic,
         bind_apps: isPublic ? [] : bind_apps,
+        env_id,
         selector: rule_logic === 'AND' ? { labels_and: rules } : { labels_or: rules },
       };
       await updateGroup(spaceId.value, id as number, params);

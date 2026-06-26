@@ -1,5 +1,52 @@
 <template>
   <bk-form form-type="vertical" ref="formRef" :model="localData" :rules="rules">
+    <!-- 项目和环境选择 -->
+    <div :class="`${cloneMode ? 'project-env-clone' : 'project-env-section'}`">
+      <div v-if="!cloneMode" class="section-hint">{{ t('服务将创建到以下项目和环境下') }}</div>
+      <div v-else>
+        <div class="clone-title">{{ t('选择克隆目标环境') }}</div>
+        <div class="clone-tip-top">{{ t('将源服务的配置克隆到以下环境中，创建为一个新的服务') }}</div>
+      </div>
+      <div class="project-env-row">
+        <!-- 项目选择器 -->
+        <bk-form-item
+          :label="t(`${cloneMode ? '目标' : '所属'}项目`)"
+          :required="!cloneMode"
+          property="projectId"
+          class="project-selector">
+          <bk-select
+            v-model="localData.projectId"
+            :clearable="false"
+            :filterable="true"
+            :disabled="true"
+            :loading="projectListLoading"
+            :placeholder="t('请选择项目')"
+            search-placeholder="搜索项目名称"
+            @change="handleProjectChange">
+            <bk-option
+              v-for="proj in projectList"
+              :key="proj.id"
+              :id="String(proj.id)"
+              :name="proj.spec.name" />
+          </bk-select>
+        </bk-form-item>
+        <!-- 环境选择器 -->
+        <bk-form-item
+          :label="t(`${cloneMode ? '目标' : '所属'}环境`)"
+          required
+          property="envId"
+          class="env-selector">
+          <env-selector
+            v-model="localData.envId"
+            :project-id="localData.projectId"
+            :placeholder="t('请选择环境')"
+            :disabled="true"
+            :use-default-trigger="true"
+            @change="handleEnvChange" />
+        </bk-form-item>
+      </div>
+      <div v-if="cloneMode" class="clone-tip-bottom">{{ t('当前版本仅支持克隆到当前项目') }}</div>
+    </div>
     <bk-form-item :label="t('form_服务名称')" property="name" required>
       <bk-input
         v-model="localData.name"
@@ -143,8 +190,17 @@
   import { CONFIG_KV_TYPE } from '../../../../../constants/config';
   import { Help, ExclamationCircleShape } from 'bkui-vue/lib/icon';
   import BkUserSelector from '../../../../../components/user-selector/index.vue';
+  import EnvSelector from '../../../../../components/env-selector.vue';
+  import type { IProjectItem } from '../../../../../../types/project';
+  import { storeToRefs } from 'pinia';
+  import useGlobalStore from '../../../../../store/global';
+  import useServiceStore from '../../../../../store/service';
+  import { getProjectList } from '../../../../../api/project';
 
   const { t, locale } = useI18n();
+  const globalStore = useGlobalStore();
+  const { spaceId, projectId } = storeToRefs(globalStore);
+  const serviceStore = useServiceStore();
 
   const emits = defineEmits(['change', 'approvalChange']);
 
@@ -193,24 +249,71 @@
     ],
   };
 
-  const localData = ref({ ...props.formData });
+  const localData: any = ref({
+    ...props.formData,
+  });
+
+  // 如果 envId 为空，则从 store 获取当前环境
+  if (!localData.value.envId && serviceStore.currentEnv) {
+    localData.value.envId = String(serviceStore.currentEnv.id);
+  };
+
   const formRef = ref();
+
+  // 非编辑模式下，使用全局的 projectId
+  if (!props.editable) {
+    localData.value.projectId = projectId.value;
+  }
+
+  // 监听全局 projectId 变化，同步到 localData（非编辑模式）
+  watch(() => projectId.value, (newVal) => {
+    if (!props.editable) {
+      localData.value.projectId = newVal;
+    }
+  });
   const approvalDialogShow = ref(false);
   const selectionsApprover = ref<string[]>([]);
   const selValidationError = ref(false);
+  const projectListLoading = ref(false);
+
+  // 项目数据
+  const projectList = ref<IProjectItem[]>([]);
+
+  // 获取项目列表
+  const fetchProjectList = async () => {
+    try {
+      projectListLoading.value = true;
+      const res = await getProjectList(spaceId.value, { all: true });
+      projectList.value = res.data?.projects || [];
+    } catch (e) {
+      console.error('获取项目列表失败', e);
+    } finally {
+      projectListLoading.value = false;
+    }
+  };
 
   watch(
     () => props.formData,
     (val) => {
-      localData.value = { ...val };
+      const newData = { ...val };
+      // 非编辑模式下，保留全局的 projectId
+      if (!props.editable) {
+        newData.projectId = projectId.value;
+      }
+      // 如果 envId 为空，则从 store 获取当前环境
+      if (!newData.envId && serviceStore.currentEnv) {
+        newData.envId = String(serviceStore.currentEnv.id);
+      }
+      localData.value = newData;
       if (!['or_sign', 'count_sign'].includes(val.approve_type)) {
         localData.value.approve_type = 'or_sign';
       }
     },
   );
 
-  onBeforeMount(() => {
+  onBeforeMount(async () => {
     formatApprover();
+    await fetchProjectList();
   });
 
   // 审批开关
@@ -260,6 +363,17 @@
     emits('change', localData.value);
   };
 
+  // 项目选择变化
+  const handleProjectChange = (projectId: string) => {
+    localData.value.projectId = projectId;
+    handleChange();
+  };
+
+  // 环境选择变化
+  const handleEnvChange = () => {
+    handleChange();
+  };
+
   const validate = () => formRef.value.validate();
 
   defineExpose({
@@ -269,6 +383,49 @@
 </script>
 
 <style lang="scss" scoped>
+  .project-env-section {
+    position: relative;
+    left: -24px;
+    min-width: 640px;
+    padding: 24px;
+    margin-bottom: 24px;
+    background-color: #F5F7FA;
+    .section-hint {
+      margin-bottom: 12px;
+      color: #979BA5;
+      line-height: 20px;
+    }
+  }
+  .project-env-clone {
+    padding: 16px;
+    border-radius: 2px;
+    margin-bottom: 24px;
+    background-color: #F5F7FA;
+    .clone-title {
+      color: #4d4f56;
+      font-weight: 700;
+      line-height: 22px;
+      margin-bottom: 2px;
+    }
+    .clone-tip-top {
+      font-size: 12px;
+      color: #979BA5;
+      margin-bottom: 16px;
+    }
+    .clone-tip-bottom {
+      font-size: 12px;
+      color: #979BA5;
+      margin-top: 4px;
+    }
+  }
+  .project-env-row {
+    display: flex;
+    gap: 24px;
+    .project-selector, .env-selector {
+      flex: 1;
+      margin-bottom: 0;
+    }
+  }
   .type-select {
     width: 240px;
   }

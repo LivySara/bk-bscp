@@ -92,6 +92,7 @@ export interface IGroupEditing {
   name: string;
   public: boolean;
   bind_apps: number[];
+  env_id: string;
   rules: IGroupRuleItem[];
   rule_logic: string;
   uid?: string;

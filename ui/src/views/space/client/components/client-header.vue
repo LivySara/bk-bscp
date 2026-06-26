@@ -3,6 +3,25 @@
     <div class="head-left">
       <span class="title">{{ title }}</span>
       <div class="line"></div>
+      <EnvSelector v-model="localEnvId" @change="handleEnvChange">
+        <template #trigger="{ selectInfo, isOpen }">
+          <div
+            v-if="selectInfo"
+            class="env-selector-trigger"
+            :style="{
+              backgroundColor: getEnvBgColor(selectInfo.group.type),
+              color: getEnvTextColor(selectInfo.group.type) }">
+            <div class="env-val-cls">
+              <i
+                :class="`bk-bscp-icon ${getEnvIconClass(selectInfo.group.type)} env-icon`"
+                :style="{ color: getEnvIconColor(selectInfo.group.type) }">
+              </i>
+              <span class="env-name">{{ selectInfo.env?.spec?.name || '' }}</span>
+            </div>
+            <AngleUpFill :class="['env-arrow', { 'icon-rotate': isOpen }]" />
+          </div>
+        </template>
+      </EnvSelector>
       <ServiceSelector :value="appId" @change="handleAppChange">
         <template #trigger>
           <div class="selector-trigger">
@@ -40,10 +59,13 @@
   import { AngleUpFill, Search } from 'bkui-vue/lib/icon';
   import { CLIENT_HEARTBEAT_LIST } from '../../../../constants/client';
   import { IAppItem } from '../../../../../types/app';
+  import { IEnvItem, EnvType } from '../../../../../types/env';
+  import { ENV_TYPE_CONFIG } from '../../../../constants/env';
   import useClientStore from '../../../../store/client';
   import SearchSelector from './search-selector.vue';
   import { storeToRefs } from 'pinia';
   import ServiceSelector from '../../../../components/service-selector.vue';
+  import EnvSelector from '../../../../components/env-selector.vue';
 
   const clientStore = useClientStore();
   const { searchQuery } = storeToRefs(useClientStore());
@@ -61,6 +83,7 @@
     name: '',
     id: Number(route.params.appId),
   });
+  const localEnvId = ref('');
   const heartbeatTime = ref(searchQuery.value.last_heartbeat_time);
   const heartbeatTimeList = ref(CLIENT_HEARTBEAT_LIST);
 
@@ -94,6 +117,27 @@
     await router.push({ name: route.name!, params: { spaceId: bizId.value, appId: service.id } });
     heartbeatTime.value = 1;
     handleHeartbeatTimeChange(1);
+  };
+
+  const handleEnvChange = (env: IEnvItem) => {
+    // TODO: 处理环境变更逻辑
+    console.log('环境变更:', env);
+  };
+
+  // 获取环境类型图标 class
+  const getEnvIconClass = (type: EnvType) => {
+    return ENV_TYPE_CONFIG[type]?.iconClass || '';
+  };
+  // 获取环境图标颜色
+  const getEnvIconColor = (type: EnvType) => {
+    return ENV_TYPE_CONFIG[type]?.iconColor || '#979BA5';
+  };
+  // 获取环境文字颜色
+  const getEnvTextColor = (type: EnvType) => {
+    return ENV_TYPE_CONFIG[type]?.textColor || '#63656E';
+  };
+  const getEnvBgColor = (type: EnvType) => {
+    return ENV_TYPE_CONFIG[type]?.bgColor || 'F0F1F5';
   };
 
   const handleHeartbeatTimeChange = (value: number) => {
@@ -151,6 +195,44 @@
           margin-left: 13.5px;
           color: #979ba5;
           transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+      }
+      .env-selector-trigger {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 140px;
+        height: 36px;
+        cursor: pointer;
+        padding: 0 8px;
+        border-radius: 4px;
+        transition: all 0.3s;
+        margin-right: 16px;
+        .env-val-cls {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+        .env-type-icon {
+          font-size: 20px;
+          flex-shrink: 0;
+        }
+        .env-name {
+          flex: 1;
+          font-size: 16px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .env-arrow {
+          margin-left: 8px;
+          font-size: 16px;
+          color: #F8B4B4;
+          transition: transform 0.2s;
+          &.icon-rotate {
+            transform: rotate(-180deg);
+          }
         }
       }
     }

@@ -1,25 +1,38 @@
 <template>
-  <div class="service-wrap">
-    <ServiceListContent
-      :space-id="spaceId"
-      :perm-check-loading="permCheckLoading"
-      :has-create-service-perm="hasCreateServicePerm" />
-    <AppFooter />
+  <div>
+    <EnvAlertBar
+      @change="handleEnvChange" />
+    <div class="service-wrap">
+      <ServiceListContent
+        :space-id="spaceId"
+        :perm-check-loading="permCheckLoading"
+        :has-create-service-perm="hasCreateServicePerm" />
+      <AppFooter />
+    </div>
   </div>
 </template>
 <script setup lang="ts">
   import { ref, watch, onMounted } from 'vue';
   import { storeToRefs } from 'pinia';
   import useGlobalStore from '../../../../store/global';
+  import useServiceStore from '../../../../store/service';
   import { permissionCheck } from '../../../../api/index';
+  import { IEnvItem } from '../../../../../types/env';
 
   import ServiceListContent from './components/service-list-content.vue';
   import AppFooter from '../../../../components/footer.vue';
+  import EnvAlertBar from '../../../../components/env-alert-bar.vue';
 
   const { spaceId } = storeToRefs(useGlobalStore());
+  const serviceStore = useServiceStore();
 
   const hasCreateServicePerm = ref(false);
   const permCheckLoading = ref(false);
+
+  // 环境切换
+  const handleEnvChange = (env: IEnvItem) => {
+    serviceStore.setCurrentEnv(env);
+  };
 
   watch(
     () => spaceId.value,
@@ -57,7 +70,7 @@
     display: flex;
     flex-direction: column;
     background: #f5f7fa;
-    height: calc(100vh - 52px);
+    height: calc(100vh - 88px);
     width: 100%;
   }
 </style>

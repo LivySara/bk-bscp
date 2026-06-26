@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { defineStore, storeToRefs } from 'pinia';
 import useGlobalStore from './global';
+import { IEnvItem } from '../../types/env';
 
 interface IAppData {
   id: number | string;
@@ -24,6 +25,12 @@ export default defineStore('service', () => {
   });
   const permCheckLoading = ref(false);
   const hasEditServicePerm = ref(false);
+
+  // 当前选中的环境
+  const currentEnv = ref<IEnvItem | null>(null);
+  const setCurrentEnv = (env: IEnvItem) => {
+    currentEnv.value = env;
+  };
 
   const isFileType = computed(() => appData.value.spec.config_type === 'file');
 
@@ -61,6 +68,8 @@ export default defineStore('service', () => {
     appData,
     permCheckLoading,
     hasEditServicePerm,
+    currentEnv,
+    setCurrentEnv,
     checkPermBeforeOperate,
     lastCreatePermission,
     topIds,

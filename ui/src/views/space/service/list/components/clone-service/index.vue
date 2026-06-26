@@ -87,6 +87,8 @@
     is_approve: true,
     approver: '',
     approve_type: 'or_sign',
+    projectId: '',
+    envId: '',
   });
   const scriptIds = ref({ pre_hook_id: 0, post_hook_id: 0 });
   const serviceFormRef = ref();

@@ -1,6 +1,12 @@
 <template>
   <div class="service-detail-page">
-    <div :class="['page-detail-content', { 'version-detail-view': versionDetailView }]">
+    <!-- 仅在配置管理（文件类型）页面显示环境提示栏 -->
+    <EnvAlertBar
+      v-if="isShowEnvBar"
+      @change="handleEnvChange" />
+    <div
+      :class="['page-detail-content', { 'version-detail-view': versionDetailView }]"
+      :style="{ height: isShowEnvBar ? `calc(100% - 36px)` : '100%'}">
       <div class="version-list-area">
         <VersionListAside :version-detail-view="versionDetailView" :bk-biz-id="bkBizId" :app-id="appId" />
         <div :class="['view-change-trigger', { extend: versionDetailView }]" @click="handleToggleView">
@@ -22,7 +28,7 @@
   </div>
 </template>
 <script setup lang="ts">
-  import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+  import { onBeforeUnmount, onMounted, ref, watch, computed } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
   import { useI18n } from 'vue-i18n';
   import { storeToRefs } from 'pinia';
@@ -32,8 +38,10 @@
   import useConfigStore from '../../../../store/config';
   import { GET_UNNAMED_VERSION_DATA } from '../../../../constants/config';
   import { permissionCheck, getAppDetail } from '../../../../api';
+  import { IEnvItem } from '../../../../../types/env';
   import DetailHeader from './components/detail-header.vue';
   import VersionListAside from './config/version-list-aside/index.vue';
+  import EnvAlertBar from '../../../../components/env-alert-bar.vue';
   import { AxiosError } from 'axios';
 
   const route = useRoute();
@@ -42,7 +50,7 @@
   const serviceStore = useServiceStore();
   const configStore = useConfigStore();
 
-  const { permCheckLoading, hasEditServicePerm } = storeToRefs(serviceStore);
+  const { permCheckLoading, hasEditServicePerm, isFileType } = storeToRefs(serviceStore);
   const { versionData, versionDetailView } = storeToRefs(configStore);
 
   const bkBizId = ref(String(route.params.spaceId));
@@ -129,6 +137,15 @@
     }
     versionDetailView.value = !versionDetailView.value;
   };
+
+  // 环境切换（来自 EnvAlertBar 的 change 事件）
+  const handleEnvChange = (env: IEnvItem) => {
+    console.log(env);
+    // TODO: 根据环境变化刷新配置数据
+  };
+  const isShowEnvBar = computed(() => {
+    return  route.name === 'service-config' && isFileType.value;
+  });
 </script>
 <style lang="scss" scoped>
   .service-detail-page {

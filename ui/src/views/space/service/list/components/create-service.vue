@@ -53,6 +53,8 @@
     is_approve: true,
     approver: '',
     approve_type: 'or_sign',
+    projectId: '',
+    envId: '',
     // encryptionSwtich: false,
     // encryptionKey: '',
   });
@@ -76,6 +78,8 @@
           is_approve: true,
           approver: '',
           approve_type: 'or_sign',
+          projectId: '',
+          envId: '',
           // encryptionSwtich: false,
           // encryptionKey: '',
         };
@@ -119,7 +123,7 @@
 </script>
 <style lang="scss" scoped>
   .create-app-form {
-    padding: 20px 24px;
+    padding: 0 24px 20px;
     height: calc(100vh - 101px);
     overflow: auto;
   }

@@ -47,6 +47,7 @@
     name: '',
     public: true,
     bind_apps: [],
+    env_id: '',
     rule_logic: 'AND',
     rules: [{ key: '', op: 'eq', value: '' }],
   });
@@ -61,6 +62,7 @@
           name: '',
           public: true,
           bind_apps: [],
+          env_id: '',
           rule_logic: 'AND',
           rules: [{ key: '', op: 'eq', value: '' }],
         };
@@ -79,12 +81,13 @@
     }
     try {
       pending.value = true;
-      const { name, public: isPublic, bind_apps, rule_logic, rules } = groupData.value;
+      const { name, public: isPublic, bind_apps, env_id, rule_logic, rules } = groupData.value;
       const params = {
         biz_id: route.params.spaceId,
         name,
         public: isPublic,
         bind_apps: isPublic ? [] : bind_apps,
+        env_id,
         mode: ECategoryType.Custom,
         selector: rule_logic === 'AND' ? { labels_and: rules } : { labels_or: rules },
       };
