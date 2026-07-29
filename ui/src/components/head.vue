@@ -260,12 +260,12 @@
       const lastAccessedServiceDetail = localStorage.getItem('lastAccessedServiceDetail');
       if (lastAccessedServiceDetail) {
         const detail = JSON.parse(lastAccessedServiceDetail);
-        const { spaceId, projectId: sPId, envId, appId } = detail;
-        if (spaceId === spaceId.value && sPId === projectId.value) {
+        const { spaceId: lastSpaceId, projectId: sPId, envId, appId } = detail;
+        if (lastSpaceId === spaceId.value && sPId === projectId.value) {
           const routeName = navId === 'service-all' && !showPermApplyPage.value ? 'service-config' : (navId as RouteRecordName);
           router.push({
             name: routeName,
-            params: { spaceId, projectId: sPId, envId, appId },
+            params: { spaceId: lastSpaceId, projectId: sPId, envId, appId },
           });
           return;
         }
