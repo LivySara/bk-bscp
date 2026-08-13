@@ -81,6 +81,7 @@
         action: 'publish',
       },
       params: {
+        envId: envId.value,
         appId: route.params.appId,
       },
     }).href;
