@@ -164,13 +164,13 @@
   watch(
     () => spaceId.value,
     async () => {
-      await ensureProjectList();
+      ensureProjectList();
       await loadEnvList();
     },
   );
 
   onMounted(async () => {
-    await ensureProjectList();
+    ensureProjectList();
     await loadEnvList();
   });
 

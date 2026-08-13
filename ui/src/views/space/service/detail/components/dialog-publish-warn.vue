@@ -69,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, ref } from 'vue';
+  import { computed } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
   import { ExclamationCircleShape, Share } from 'bkui-vue/lib/icon';
   import { IPublishData } from '../../../../../../types/service';
@@ -90,7 +90,6 @@
 
   const route = useRoute();
   const router = useRouter();
-  const envId = ref(String(route.params.envId));
 
   const { locale } = useI18n();
 
@@ -107,7 +106,6 @@
           status: param,
         },
         params: {
-          envId: envId.value,
           appId: route.params.appId,
         },
       }).href;
