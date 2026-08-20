@@ -15,7 +15,7 @@
         <bk-table :data="appList" :max-height="maxTableHeight" :empty-text="t('暂无未命名版本引用此套餐')">
           <bk-table-column :label="t('引用此套餐的服务')">
             <template #default="{ row }">
-              <div class="app-info" @click="goToConfigPageImport(row.app_id)">
+              <div class="app-info" @click="goToConfigPageImport(row)">
                 <div v-overflow-title class="name-text">{{ row.app_name }}</div>
                 <LinkToApp class="link-icon" :id="row.app_id" :auto-jump="true" />
               </div>
@@ -73,10 +73,10 @@
     },
   );
 
-  const goToConfigPageImport = (id: number) => {
+  const goToConfigPageImport = (row: IPackageCitedByApps) => {
     const { href } = router.resolve({
       name: 'service-config',
-      params: { appId: id },
+      params: { envId: row.env_id, appId: row.app_id },
       query: { pkg_id: currentTemplateSpace.value },
     });
     window.open(href, '_blank');

@@ -1,6 +1,6 @@
 <template>
   <bk-dialog
-    ext-cls="create-version-confirm-dialog"
+    class="create-version-confirm-dialog"
     :title="t('确认更新配置文件版本？')"
     header-align="center"
     footer-align="center"
@@ -16,7 +16,7 @@
           <bk-table-column :label="t('所在套餐')" prop="template_set_name"></bk-table-column>
           <bk-table-column :label="t('引用此模板的服务')">
             <template #default="{ row }">
-              <div v-if="row.app_id" class="app-info" @click="goToConfigPageImport(row.app_id)">
+              <div v-if="row.app_id" class="app-info" @click="goToConfigPageImport(row)">
                 <div v-overflow-title class="name-text">{{ row.app_name }}</div>
                 <LinkToApp class="link-icon" :id="row.app_id" auto-jump />
               </div>
@@ -77,10 +77,10 @@
     },
   );
 
-  const goToConfigPageImport = (id: number) => {
+  const goToConfigPageImport = (row: IPackagesCitedByApps) => {
     const { href } = router.resolve({
       name: 'service-config',
-      params: { appId: id },
+      params: { envId: row.env_id, appId: row.app_id },
       query: { pkg_id: currentTemplateSpace.value },
     });
     window.open(href, '_blank');
