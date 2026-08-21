@@ -10,9 +10,11 @@
     :quick-close="false"
     @closed="close">
     <p class="tips">{{ t('以下套餐及服务未命名版本中引用的此配置文件也将更新') }}</p>
-    <div class="service-table">
-      <bk-loading style="min-height: 100px" :loading="loading">
-        <bk-table :data="citedList" :max-height="maxTableHeight">
+    <div
+      class="service-table"
+      :style="{ maxHeight: `${maxTableHeight}px`, minHeight: '100px', overflowY: 'auto' }">
+      <bk-loading style="display: block; width: 100%" :loading="loading">
+        <bk-table :data="citedList">
           <bk-table-column :label="t('所在套餐')" prop="template_set_name"></bk-table-column>
           <bk-table-column :label="t('引用此模板的服务')">
             <template #default="{ row }">
@@ -128,20 +130,18 @@
     }
   }
   .actions-wrapper {
-    padding-bottom: 20px;
     .bk-button:not(:last-of-type) {
       margin-right: 8px;
     }
   }
 </style>
 <style lang="scss">
-  .create-version-confirm-dialog.bk-modal-wrapper {
+  .create-version-confirm-dialog .bk-modal-wrapper {
     .bk-dialog-header .bk-dialog-title {
       white-space: normal;
     }
-    .bk-modal-footer {
+    .bk-dialog-footer {
       position: static;
-      padding: 32px 0 48px;
       background: #ffffff;
       border-top: none;
       .bk-button {

@@ -10,9 +10,11 @@
     <div style="margin-bottom: 8px">
       {{ t('一旦删除，该操作将无法撤销，以下服务配置的未命名版本中引用该套餐的内容也将清除') }}
     </div>
-    <div class="service-table">
-      <bk-loading style="min-height: 200px" :loading="appsLoading">
-        <bk-table :data="appList" :max-height="maxTableHeight" :empty-text="t('暂无未命名版本引用此套餐')">
+    <div
+      class="service-table"
+      :style="{ maxHeight: `${maxTableHeight}px`, minHeight: '200px', overflowY: 'auto' }">
+      <bk-loading style="display: block; width: 100%" :loading="appsLoading">
+        <bk-table :data="appList" :empty-text="t('暂无未命名版本引用此套餐')">
           <bk-table-column :label="t('引用此套餐的服务')">
             <template #default="{ row }">
               <div class="app-info" @click="goToConfigPageImport(row)">
