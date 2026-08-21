@@ -473,10 +473,11 @@
     };
     const res = await getScriptCiteList(spaceId.value, projectId.value, script.hook.id, params);
     const allAppInfo = res.details.map((item: any) => {
-      const { app_id, app_name } = item;
+      const { app_id, app_name, env_id } = item;
       return {
         app_id,
         app_name,
+        env_id,
       };
     });
     appList.value = Array.from(
