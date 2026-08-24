@@ -41,6 +41,7 @@
     updateProject,
   } from '../../../../api/project';
   import type { IProjectItem } from '../../../../../types/project';
+  import { clearProjectListCache } from '../../../../utils/project';
 
   const { t } = useI18n();
   const { spaceId } = storeToRefs(useGlobalStore());
@@ -106,7 +107,6 @@
   const handleSubmit = async () => {
     try {
       await formRef.value?.validate();
-      console.log(formData, ';;;');
       submitLoading.value = true;
       if (isEdit.value) {
         await updateProject(spaceId.value, props.editingItem.id! as string, formData);
@@ -115,6 +115,8 @@
         await createProjectApi(spaceId.value, formData);
         Message({ theme: 'success', message: t('创建项目成功') });
       }
+      // 项目列表已变更，失效共享缓存，避免选择器/头部展示读到旧数据
+      clearProjectListCache(spaceId.value);
       localVisible.value = false;
       emit('success');
     } catch {

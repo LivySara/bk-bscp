@@ -2,25 +2,93 @@ import { getProjectList } from '../api/project';
 import type { ISpaceProject, IProjectItem } from '../../types/project';
 
 /**
- * 模块级缓存：某空间的全部项目列表
+ * 模块级缓存：某空间项目列表的请求 Promise
+ * 缓存请求而非结果，使并发调用能命中同一次请求
  */
-const projectListCache: Record<string, IProjectItem[]> = {};
+const projectListCache: Record<string, Promise<IProjectItem[]>> = {};
+
+/** 缓存失效回调：spaceId 未传表示全部失效 */
+type CacheInvalidHandler = (spaceId?: string) => void;
+
+const cacheInvalidHandlers = new Set<CacheInvalidHandler>();
+
+/**
+ * 跨标签页广播通道
+ * 项目管理页经 openInNewTab 打开，模块级缓存按标签页隔离，
+ * 需广播让其他标签页同步失效，否则原窗口一直读到旧数据
+ */
+const cacheChannel =
+  typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('bscp-project-list-cache') : null;
+
+const removeProjectListCache = (spaceId?: string) => {
+  if (spaceId) {
+    delete projectListCache[spaceId];
+  } else {
+    Object.keys(projectListCache).forEach((key) => delete projectListCache[key]);
+  }
+};
+
+const notifyCacheInvalid = (spaceId?: string) => {
+  cacheInvalidHandlers.forEach((handler) => handler(spaceId));
+};
+
+if (cacheChannel) {
+  cacheChannel.onmessage = (event: MessageEvent<{ spaceId?: string }>) => {
+    // 其他标签页发起的失效：清本地缓存并通知订阅者，但不再回播避免循环
+    removeProjectListCache(event.data?.spaceId);
+    notifyCacheInvalid(event.data?.spaceId);
+  };
+}
 
 /**
  * 共享数据入口：所有需要"某空间全部项目"的逻辑统一走这里
  * 同一 spaceId 只发一次请求，后续直接复用缓存
+ * 项目发生增删改后需调用 clearProjectListCache 失效缓存
  * @param spaceId 空间ID
  * @returns 项目列表
  */
 export const getCachedProjectList = (spaceId: string): Promise<IProjectItem[]> => {
-  if (projectListCache[spaceId]?.length > 0) {
-    return Promise.resolve(projectListCache[spaceId]);
+  if (!projectListCache[spaceId]) {
+    projectListCache[spaceId] = getProjectList(spaceId, { all: true })
+      .then((res) => {
+        const projects = res.data?.projects || [];
+        // 后端保证每个空间必有默认项目，空结果视为异常，不留缓存以便下次重试
+        if (!projects.length) {
+          delete projectListCache[spaceId];
+        }
+        return projects;
+      })
+      .catch((e) => {
+        // 请求失败不能留下 rejected 的 Promise，否则整个页面周期内都取不到列表
+        delete projectListCache[spaceId];
+        throw e;
+      });
   }
-  return getProjectList(spaceId, { all: true }).then((res) => {
-    const projects = res.data?.projects || [];
-    projectListCache[spaceId] = projects;
-    return projects;
-  });
+  return projectListCache[spaceId];
+};
+
+/**
+ * 失效项目列表缓存
+ * @param spaceId 指定空间ID，不传则清空全部
+ */
+export const clearProjectListCache = (spaceId?: string) => {
+  removeProjectListCache(spaceId);
+  // 通知本窗口的订阅者刷新派生状态
+  notifyCacheInvalid(spaceId);
+  // 项目管理页由 openInNewTab 打开，模块级缓存按标签页隔离，需广播通知其他标签页
+  cacheChannel?.postMessage({ spaceId });
+};
+
+/**
+ * 订阅项目列表缓存失效事件（含其他标签页触发的失效）
+ * @param handler 失效回调，参数为失效的 spaceId，未传表示全部失效
+ * @returns 取消订阅函数
+ */
+export const onProjectListCacheInvalid = (handler: CacheInvalidHandler) => {
+  cacheInvalidHandlers.add(handler);
+  return () => {
+    cacheInvalidHandlers.delete(handler);
+  };
 };
 
 /**

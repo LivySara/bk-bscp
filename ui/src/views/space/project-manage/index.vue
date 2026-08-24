@@ -112,6 +112,7 @@
   import { getProjectList, deleteProject } from '../../../api/project';
   import type { IProjectItem } from '../../../../types/project';
   import { datetimeFormat, copyToClipBoard } from '../../../utils';
+  import { clearProjectListCache } from '../../../utils/project';
 
   const { t } = useI18n();
   const router = useRouter();
@@ -211,6 +212,8 @@
         try {
           await deleteProject(spaceId.value, row.id as string);
           Message({ theme: 'success', message: t('删除项目成功') });
+          // 项目列表已变更，失效共享缓存，避免已删除项目仍被判定为有效
+          clearProjectListCache(spaceId.value);
           if (tableData.value.length === 1 && pagination.value.current > 1) {
             pagination.value.current -= 1;
           }

@@ -118,7 +118,7 @@
   import useGlobalStore from '../store/global';
   import { ISpaceDetail } from '../../types/index';
   import type { IProjectItem } from '../../types/project';
-  import { hasProjectConcept, getCachedProjectList } from '../utils/project';
+  import { hasProjectConcept, getCachedProjectList, onProjectListCacheInvalid } from '../utils/project';
 
   const { t } = useI18n();
   const route = useRoute();
@@ -182,6 +182,15 @@
   };
 
   const optionList = ref<ISpaceDetail[]>([]);
+
+  // 缓存失效（含项目管理页在新标签页的增删改）后，重新拉取已展示过的业务项目列表
+  const unsubscribeCacheInvalid = onProjectListCacheInvalid((invalidSpaceId?: string) => {
+    const loadedBizIds = Object.keys(bizProjectsMap.value);
+    const targetBizIds = invalidSpaceId
+      ? loadedBizIds.filter((id) => id === invalidSpaceId)
+      : loadedBizIds;
+    targetBizIds.forEach((bizId) => fetchProjectList(bizId));
+  });
 
   watch(
     spaceList,
@@ -260,12 +269,14 @@
     { immediate: true },
   );
 
-  const togglePanel = () => {
+  const togglePanel = async () => {
     isOpen.value = !isOpen.value;
     // 打开面板时，如果有已选中的业务，自动设置 tempSelectedBizId 为当前业务ID
     // 这样项目列表才能正确显示（因为项目列表依赖 tempSelectedBizId || selectedBizId）
     if (isOpen.value && selectedBizId.value) {
       tempSelectedBizId.value = selectedBizId.value;
+      // 重新走共享入口，命中缓存时无请求；缓存已失效时可拉到最新项目列表
+      await fetchProjectList(selectedBizId.value);
     }
   };
 
@@ -395,6 +406,7 @@
 
   onUnmounted(() => {
     document.removeEventListener('click', handleClickOutside);
+    unsubscribeCacheInvalid();
   });
 </script>
 

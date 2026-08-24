@@ -1,7 +1,7 @@
-import { ref, computed } from 'vue';
+import { ref, computed, onUnmounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import useGlobalStore from '../../store/global';
-import { getCachedProjectList } from '../project';
+import { getCachedProjectList, onProjectListCacheInvalid } from '../project';
 import type { IProjectItem } from '../../../types/project';
 
 /**
@@ -26,6 +26,16 @@ export default function useBizProjectText(separator = ' / ') {
       [spaceId.value]: list,
     };
   };
+
+  // 缓存失效（含项目管理页在新标签页重命名项目）后重新拉取，保证展示文本同步
+  const unsubscribe = onProjectListCacheInvalid((invalidSpaceId?: string) => {
+    if (invalidSpaceId && invalidSpaceId !== spaceId.value) return;
+    ensureProjectList();
+  });
+
+  onUnmounted(() => {
+    unsubscribe();
+  });
 
   // 业务名 / 项目名，无项目态时仅显示业务名，与 biz-project-selector 行为一致
   const bizProjectText = computed(() => {
