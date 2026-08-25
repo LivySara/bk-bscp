@@ -15,8 +15,8 @@
     </div>
     <div
       class="service-table"
-      :style="{ maxHeight: `${maxTableHeight}px`, minHeight: '100px', overflowY: 'auto' }">
-      <bk-loading style="display: block; width: 100%" :loading="loading">
+      :style="{ '--table-body-max-height': `${maxTableHeight}px` }">
+      <bk-loading style="min-height: 100px" :loading="loading">
         <bk-table
           v-if="!loading"
           :data="citedList"
@@ -278,6 +278,7 @@
 
       .bk-table {
         .bk-table-body {
+          max-height: var(--table-body-max-height);
           border-bottom: 1px solid var(--table-border-color);
         }
         .bk-table-head table th {
