@@ -13,12 +13,13 @@
     <div style="margin-bottom: 8px">
       {{ t('配置文件') }}: <span style="color: #313238; font-weight: 600">{{ name }}</span>
     </div>
-    <div class="service-table">
-      <bk-loading style="min-height: 100px" :loading="loading">
+    <div
+      class="service-table"
+      :style="{ maxHeight: `${maxTableHeight}px`, minHeight: '100px', overflowY: 'auto' }">
+      <bk-loading style="display: block; width: 100%" :loading="loading">
         <bk-table
           v-if="!loading"
           :data="citedList"
-          :max-height="maxTableHeight"
           :checked="checkedPkgs"
           :is-row-select-enable="isRowSelectEnable"
           show-overflow-tooltip
@@ -257,7 +258,6 @@
     }
   }
   .actions-wrapper {
-    padding-bottom: 20px;
     .bk-button:not(:last-of-type) {
       margin-right: 8px;
     }
