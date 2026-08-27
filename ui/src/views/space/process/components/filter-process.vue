@@ -152,19 +152,15 @@
     },
   ]);
   const activeEnv = ref('3');
-  const filterValues = ref<{
-    sets: string[];
-    modules: string[];
-    service_instances: string[];
-    process_aliases: string[];
-    cc_process_ids: number[];
-  }>({
-    sets: [],
-    modules: [],
-    service_instances: [],
-    process_aliases: [],
-    cc_process_ids: [],
+  // 筛选模式各字段的缺省值，供初始化与清空复用
+  const createEmptyFilterValues = () => ({
+    sets: [] as string[],
+    modules: [] as string[],
+    service_instances: [] as string[],
+    process_aliases: [] as string[],
+    cc_process_ids: [] as number[],
   });
+  const filterValues = ref(createEmptyFilterValues());
   const filterType = ref('filter');
   // 表达式模式各字段的输入值，key 与 filterList 的 value 保持一致，缺省匹配任意（*）。
   const expressionValues = ref<Record<string, string>>({
@@ -245,7 +241,9 @@
 
   const loadPerocessFilterList = async () => {
     try {
-      const res = await getProcessFilter(props.bkBizId);
+      const res = await getProcessFilter(props.bkBizId, {
+        environment: activeEnv.value
+      });
       filterList.value.map((filter: IProcessFilterItem) => {
         filter.list = res[filter.value as keyof typeof res] as Array<{ name: string; id: number }>;
         return filter;
@@ -257,17 +255,13 @@
 
   const handleChangeEnv = (environment: string) => {
     activeEnv.value = environment;
+    filterValues.value = createEmptyFilterValues();
     triggerSearch();
+    loadPerocessFilterList();
   };
 
   const handleClearFilter = () => {
-    filterValues.value = {
-      sets: [],
-      modules: [],
-      service_instances: [],
-      process_aliases: [],
-      cc_process_ids: [],
-    };
+    filterValues.value = createEmptyFilterValues();
     expressionValues.value = {
       sets: '',
       modules: '',
