@@ -223,7 +223,7 @@
     }
     if (filterFlag.value) {
       // 任务详情跳转：操作范围为五段表达式字符串，切到表达式模式按 expression_scope 过滤。
-      const { operate_range } = taskDetail.value;
+      const { operate_range, environment } = taskDetail.value;
       filterType.value = 'expression';
       expressionValues.value = {
         sets: operate_range.set_name || '',
@@ -232,6 +232,7 @@
         process_aliases: operate_range.process_alias || '',
         cc_process_ids: operate_range.process_id || '',
       };
+      activeEnv.value = environment;
       taskStore.$patch({ filterFlag: false });
       triggerSearch();
     }
