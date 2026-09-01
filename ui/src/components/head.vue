@@ -244,6 +244,7 @@
             // 更新全局状态
             const globalStore = useGlobalStore();
             globalStore.projectId = targetProjectId;
+            globalStore.loadProjectKey(spaceId.value, targetProjectId);
           }
         } catch (error) {
           console.error('获取项目列表失败', error);

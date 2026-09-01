@@ -92,9 +92,9 @@
   const emits = defineEmits(['selected-key-data']);
 
   const globalStore = useGlobalStore();
-  const { spaceFeatureFlags, projectId } = storeToRefs(globalStore);
+  const { spaceFeatureFlags, projectId, projectKey } = storeToRefs(globalStore);
 
-  const basicInfo = inject<{ serviceName: Ref<string>; serviceType: Ref<string> }>('basicInfo');
+  const basicInfo = inject<{ serviceName: Ref<string>; serviceType: Ref<string>; envName: Ref<string> }>('basicInfo');
   const { t } = useI18n();
   const route = useRoute();
 
@@ -294,7 +294,9 @@
       return str
         .replace('{{ .Bk_Bscp_Variable_BkBizId }}', bkBizId.value)
         .replace('{{ .Bk_Bscp_Variable_ServiceName }}', basicInfo!.serviceName.value)
-        .replaceAll('{{ .Bk_Bscp_Variable_FEED_ADDR }}', feedAddr);
+        .replaceAll('{{ .Bk_Bscp_Variable_FEED_ADDR }}', feedAddr)
+        .replaceAll('{{ .Bk_Bscp_Variable_ProjectKey }}', projectKey.value)
+        .replaceAll('{{ .Bk_Bscp_Variable_EnvName }}', basicInfo!.envName.value || '');
     };
     // 更新 replaceVal
     updateString = replacePlaceholders(updateString, feedAddrVal);

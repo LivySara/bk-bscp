@@ -251,10 +251,14 @@
         selectedBizId.value = currentSpaceId;
       };
 
-      // 当 spaceId 和 projectId 都有值时，确保项目列表已加载
+      // 当 spaceId 和 projectId 都有值时，确保项目列表已加载，并同步项目 Key
       if (currentSpaceId && currentProjectId) {
         // 使用公共方法获取项目列表（已内含缓存检查）
-        await fetchProjectList(currentSpaceId);
+        const projects = await fetchProjectList(currentSpaceId);
+        const proj = projects.find((p) => String(p.id) === String(currentProjectId));
+        if (proj) {
+          globalStore.projectKey = proj.spec.key || '';
+        }
       }
     },
     { immediate: true },

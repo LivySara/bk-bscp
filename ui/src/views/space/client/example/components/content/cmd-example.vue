@@ -62,6 +62,8 @@
   import { CopyShape } from 'bkui-vue/lib/icon';
   import { useI18n } from 'vue-i18n';
   import { useRoute } from 'vue-router';
+  import useGlobalStore from '../../../../../../store/global';
+  import { storeToRefs } from 'pinia';
 
   const props = defineProps<{
     contentScrollTop: Function;
@@ -73,7 +75,9 @@
 
   const { t } = useI18n();
   const route = useRoute();
-  const basicInfo = inject<{ serviceName: Ref<string>; serviceType: Ref<string> }>('basicInfo');
+  const globalStore = useGlobalStore();
+  const { projectKey } = storeToRefs(globalStore);
+  const basicInfo = inject<{ serviceName: Ref<string>; serviceType: Ref<string>; envName: Ref<string> }>('basicInfo');
 
   const fileOptionRef = ref();
   const bkBizId = ref(String(route.params.spaceId));
@@ -305,6 +309,9 @@
     updateString = updateString.replace('{{ .Bk_Bscp_Variable_BkBizId }}', bkBizId.value);
     updateString = updateString.replace('{{ .Bk_Bscp_Variable_ServiceName }}', basicInfo!.serviceName.value);
     updateString = updateString.replaceAll('{{ .Bk_Bscp_Variable_FEED_ADDR }}', (window as any).GRPC_ADDR);
+    // 项目key、环境名称占位符渲染（参考 container-example.vue）
+    updateString = updateString.replaceAll('{{ .Bk_Bscp_Variable_ProjectKey }}', projectKey.value || '');
+    updateString = updateString.replaceAll('{{ .Bk_Bscp_Variable_EnvName }}', basicInfo!.envName.value || '');
     // 文件配置筛选规则动态增/删
     if (optionData.value.rules?.length) {
       const rulesPart = `

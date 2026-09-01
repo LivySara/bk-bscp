@@ -34,6 +34,8 @@
   import { useI18n } from 'vue-i18n';
   import { useRoute } from 'vue-router';
   import yamlString from '/src/assets/example-data/file-container.yaml?raw';
+  import useGlobalStore from '../../../../../../store/global';
+  import { storeToRefs } from 'pinia';
 
   const props = defineProps<{ contentScrollTop: Function; selectedKeyData: newICredentialItem['spec'] | null }>();
 
@@ -41,6 +43,8 @@
 
   const { t } = useI18n();
   const route = useRoute();
+  const globalStore = useGlobalStore();
+  const { projectKey } = storeToRefs(globalStore);
 
   const fileOptionRef = ref();
   // fileOption组件传递过来的数据汇总
@@ -58,7 +62,7 @@
   const localEnvId = ref(String(route.params.envId));
   const replaceVal = ref('');
   const copyReplaceVal = ref(''); // 渲染的值，用于复制未脱敏密钥的yaml数据
-  const basicInfo = inject<{ serviceName: Ref<string>; serviceType: Ref<string> }>('basicInfo');
+  const basicInfo = inject<{ serviceName: Ref<string>; serviceType: Ref<string>; envName: Ref<string> }>('basicInfo');
   const variables = ref<IVariableEditParams[]>();
 
   const getOptionData = (data: any) => {
@@ -76,7 +80,9 @@
     });
   };
   const updateReplaceVal = () => {
-    let updateString = replaceVal.value;
+    let updateString = yamlString; // 始终基于原始模板渲染，避免重复替换时占位符已丢失
+    updateString = updateString.replaceAll('{{ .Bk_Bscp_Variable_ProjectKey }}', projectKey.value);
+    updateString = updateString.replaceAll('{{ .Bk_Bscp_Variable_EnvName }}', basicInfo!.envName.value || '');
     updateString = updateString.replaceAll('{{ .Bk_Bscp_Variable_BkBizId }}', bkBizId.value);
     updateString = updateString.replaceAll('{{ .Bk_Bscp_Variable_ServiceName }}', basicInfo!.serviceName.value);
     updateString = updateString.replaceAll('{{ .Bk_Bscp_Variable_FEED_ADDR }}', (window as any).GRPC_ADDR);
