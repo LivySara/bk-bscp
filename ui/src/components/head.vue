@@ -168,6 +168,11 @@
         { id: 'process-management', module: 'process', name: t('进程管理') },
         { id: 'config-template-list', module: 'config-template', name: t('配置模板管理') },
         { id: 'task-list', module: 'task', name: t('任务历史') },
+        {
+          id: 'process-operation-statistics',
+          module: 'process-operation-statistics',
+          name: t('进程操作统计'),
+        },
       ],
     },
     { id: 'records-all', module: 'records', name: t('操作记录'), view: true },

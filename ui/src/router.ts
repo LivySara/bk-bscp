@@ -243,6 +243,15 @@ const routes = [
         component: () => import('./views/space/process/index.vue'),
       },
       {
+        path: 'process-operation-statistics',
+        name: 'process-operation-statistics',
+        meta: {
+          navModule: 'process-operation-statistics',
+          permission: 'process_config_view',
+        },
+        component: () => import('./views/space/process-operation-statistics/index.vue'),
+      },
+      {
         path: 'config-template',
         name: 'config-template-management',
         meta: {

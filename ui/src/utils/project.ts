@@ -32,7 +32,13 @@ export const getCachedProjectList = (spaceId: string): Promise<IProjectItem[]> =
  * 无项目概念的模块列表
  * 这些模块不需要 projectId 参数
  */
-export const NO_PROJECT_CONCEPT_MODULES = ['process', 'config-template', 'task', 'project-manage'];
+export const NO_PROJECT_CONCEPT_MODULES = [
+  'process',
+  'config-template',
+  'task',
+  'project-manage',
+  'process-operation-statistics',
+];
 
 /**
  * 判断某个导航模块是否有项目概念
